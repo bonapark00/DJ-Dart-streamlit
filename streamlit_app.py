@@ -9,7 +9,7 @@ from openpyxl.utils import get_column_letter
 st.title("📊 DART 재무제표 추출기")
 
 corp_name = st.text_input("기업명", "삼성전자")
-corp_market = st.text_input("기업 구분 ('Y': 코스피, 'K': 코스닥, 'N': 코넥스, 'E': 기타)", "")
+corp_market = st.text_input("기업 구분 ('Y': 코스피, 'K': 코스닥, 'N': 코넥스, 'E': 기타)", "Y")
 bgn_de = st.text_input("시작일", "20220101")
 end_de = st.text_input("종료일", "20241231")
 
