@@ -1,3 +1,6 @@
+#! streamlit run streamlit_app.py --server.port=8501 --server.enableCORS=false
+
+
 import streamlit as st
 import pandas as pd
 from income import get_income_by_name  # 너의 함수 불러오기
@@ -15,12 +18,21 @@ end_de = st.text_input("종료일", "20241231")
 
 if st.button("📥 엑셀 파일 생성 및 다운로드"):
 
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
+    def update_progress(pct, message):
+        progress_bar.progress(pct)
+        status_text.text(message)
+
+
     # 🔽 너의 노트북에 있는 처리 함수 호출
     dfs = get_income_by_name(  # 이건 너가 만든 함수
         corp_name=corp_name,
         corp_market=corp_market,
         bgn_de=bgn_de,
-        end_de=end_de
+        end_de=end_de,
+        progress_fn = update_progress
     )
 
 

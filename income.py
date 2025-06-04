@@ -187,21 +187,30 @@ def df_merge(df_a001, df_a002, df_a003):
         df_base = df_base[new_cols]
     return df_base, df_base[['label_ko']+q1_cols], df_base[['label_ko']+q2_cols], df_base[['label_ko']+q3_cols], df_base[['label_ko']+q4_cols], 
     
-def get_income_by_name(corp_name, corp_market, bgn_de, end_de):
+def get_income_by_name(corp_name, corp_market, bgn_de, end_de, progress_fn = None):
         
     # 삼성전자 code
     # corp_code = '00336570'
     # corp_name = '원텍'
     # corp_market = 'K' # 'Y': 코스피, 'K': 코스닥, 'N': 코넥스, 'E': 기타
 
-
+    # progress bar setup
+    total_steps = 4 #int(end_de[:4]) - int(bgn_de[:4])
+    current = 0
+    
+    
     # 모든 상장된 기업 리스트 불러오기
+    if progress_fn:
+        progress_fn(current / total_steps, '기업 검색 중...')
     corp_list = dart.get_corp_list() 
     clists = corp_list.find_by_corp_name(corp_name=corp_name, exactly=True, market = corp_market)
     print(clists)
     corp = clists[0]
 
     # 반기보고서 검색
+    current += 1
+    if progress_fn:
+        progress_fn(current / total_steps, '보고서 검색 중...')
     reports_a001 = corp.search_filings(bgn_de=bgn_de, end_de=end_de, pblntf_detail_ty='a001')
     reports_a002 = corp.search_filings(bgn_de=bgn_de, end_de=end_de, pblntf_detail_ty='a002')
     reports_a003 = corp.search_filings(bgn_de=bgn_de, end_de=end_de, pblntf_detail_ty='a003')
@@ -209,12 +218,18 @@ def get_income_by_name(corp_name, corp_market, bgn_de, end_de):
 
 
     # a001
+    current += 1
+    if progress_fn:
+        progress_fn(current / total_steps, '보고서 분석 중...')
     df_a001_sep, df_a001_con = extract_df(reports_a001)
     # a002
     df_a002_sep, df_a002_con = extract_df(reports_a002)
     # a003
     df_a003_sep, df_a003_con = extract_df(reports_a003)
 
+    current += 1
+    if progress_fn:
+        progress_fn(current / total_steps, '보고서 병합 중...')
     df_con_total, df_con_q1, df_con_q2, df_con_q3, df_con_q4 = df_merge(df_a001_con, df_a002_con, df_a003_con)
     df_sep_total, df_sep_q1, df_sep_q2, df_sep_q3, df_sep_q4, = df_merge(df_a001_sep, df_a002_sep, df_a003_sep)
     
@@ -236,42 +251,42 @@ def get_income_by_name(corp_name, corp_market, bgn_de, end_de):
 
 
 
-    from openpyxl.utils import get_column_letter
-    from openpyxl.styles import numbers
-    from openpyxl import load_workbook
+    # from openpyxl.utils import get_column_letter
+    # from openpyxl.styles import numbers
+    # from openpyxl import load_workbook
 
-    # Excel 파일로 저장
-    with pd.ExcelWriter('포과손익계산서.xlsx', engine='openpyxl') as writer:
-        df_sep_total.to_excel(writer, sheet_name='전체분기_별도', index=False)
-        df_con_total.to_excel(writer, sheet_name='전체분기_연결', index=False)
-        df_sep_q1.to_excel(writer, sheet_name='Q1_별도', index=False)
-        df_sep_q2.to_excel(writer, sheet_name='Q2_별도', index=False)
-        df_sep_q3.to_excel(writer, sheet_name='Q3_별도', index=False)
-        df_sep_q4.to_excel(writer, sheet_name='Q4_별도', index=False)
-        df_con_q1.to_excel(writer, sheet_name='Q1_연결', index=False)
-        df_con_q2.to_excel(writer, sheet_name='Q2_연결', index=False)
-        df_con_q3.to_excel(writer, sheet_name='Q3_연결', index=False)
-        df_con_q4.to_excel(writer, sheet_name='Q4_연결', index=False)
+    # # Excel 파일로 저장
+    # with pd.ExcelWriter('포과손익계산서.xlsx', engine='openpyxl') as writer:
+    #     df_sep_total.to_excel(writer, sheet_name='전체분기_별도', index=False)
+    #     df_con_total.to_excel(writer, sheet_name='전체분기_연결', index=False)
+    #     df_sep_q1.to_excel(writer, sheet_name='Q1_별도', index=False)
+    #     df_sep_q2.to_excel(writer, sheet_name='Q2_별도', index=False)
+    #     df_sep_q3.to_excel(writer, sheet_name='Q3_별도', index=False)
+    #     df_sep_q4.to_excel(writer, sheet_name='Q4_별도', index=False)
+    #     df_con_q1.to_excel(writer, sheet_name='Q1_연결', index=False)
+    #     df_con_q2.to_excel(writer, sheet_name='Q2_연결', index=False)
+    #     df_con_q3.to_excel(writer, sheet_name='Q3_연결', index=False)
+    #     df_con_q4.to_excel(writer, sheet_name='Q4_연결', index=False)
 
-    # 저장한 파일을 다시 불러와 포맷 적용
-    wb = load_workbook('포과손익계산서.xlsx')
+    # # 저장한 파일을 다시 불러와 포맷 적용
+    # wb = load_workbook('포과손익계산서.xlsx')
 
-    for sheetname in wb.sheetnames:
-        ws = wb[sheetname]
+    # for sheetname in wb.sheetnames:
+    #     ws = wb[sheetname]
         
-        # A열 (label_ko) 너비 넓히기
-        ws.column_dimensions['A'].width = 40
+    #     # A열 (label_ko) 너비 넓히기
+    #     ws.column_dimensions['A'].width = 40
         
         
-        # B열부터 마지막 열까지 숫자 형식 적용 (천 단위 쉼표)
-        for col in range(2, ws.max_column + 1):
-            col_letter = get_column_letter(col)
-            for row in range(2, ws.max_row + 1):  # header 제외
-                cell = ws[f'{col_letter}{row}']
-                if isinstance(cell.value, (int, float)):
-                    cell.number_format = '#,##0'  # 천 단위 쉼표
-            ws.column_dimensions[col_letter].width = 20
+    #     # B열부터 마지막 열까지 숫자 형식 적용 (천 단위 쉼표)
+    #     for col in range(2, ws.max_column + 1):
+    #         col_letter = get_column_letter(col)
+    #         for row in range(2, ws.max_row + 1):  # header 제외
+    #             cell = ws[f'{col_letter}{row}']
+    #             if isinstance(cell.value, (int, float)):
+    #                 cell.number_format = '#,##0'  # 천 단위 쉼표
+    #         ws.column_dimensions[col_letter].width = 20
 
 
-    # 다시 저장
-    wb.save('포과손익계산서.xlsx')
+    # # 다시 저장
+    # wb.save('포과손익계산서.xlsx')
